@@ -1,0 +1,262 @@
+//pom.xoml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.mail</groupId>
+  <artifactId>VerificationOfSendingEmails</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>to test the functionality of sending an email using gmail</name>
+  <dependencies>
+<!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java -->
+<dependency>
+    <groupId>org.seleniumhq.selenium</groupId>
+    <artifactId>selenium-java</artifactId>
+    <version>3.141.59</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.poi/poi -->
+<dependency>
+	<groupId>org.apache.poi</groupId>
+	<artifactId>poi</artifactId>
+	<version>3.12</version>
+	</dependency>
+	<dependency>
+	<groupId>org.apache.poi</groupId>
+	<artifactId>poi-ooxml</artifactId>
+	<version>3.12</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-java -->
+<dependency>
+    <groupId>io.cucumber</groupId>
+    <artifactId>cucumber-java</artifactId>
+    <version>4.2.3</version>
+</dependency>
+	<!-- https://mvnrepository.com/artifact/io.cucumber/cucumber-junit -->
+<dependency>
+    <groupId>io.cucumber</groupId>
+    <artifactId>cucumber-junit</artifactId>
+    <version>4.2.3</version>
+    <scope>test</scope>
+</dependency>
+  </dependencies>
+</project>
+
+//baseclass
+package org.lib;
+
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+public class LibGlobal {
+	public static WebDriver driver;
+
+	public static void getChromeDriver() {
+		System.setProperty("webdriver.chrome.driver",
+				"C:\\Users\\sethu\\eclipse-workspace\\VerificationOfSendingEmails\\Driver\\chromedriver.exe");
+		driver = new ChromeDriver();
+	}
+
+	public static void launchUrl(String url) {
+		driver.get(url);
+	}
+
+	public static void maximizeWindow() {
+		driver.manage().window().maximize();
+	}
+
+	public static void waitDynamically(long secs) {
+		driver.manage().timeouts().implicitlyWait(secs, TimeUnit.SECONDS);
+	}
+
+	public static void closeActiveInstance() {
+		driver.close();
+	}
+	public static String getCurrentUrl()
+	{
+		return driver.getCurrentUrl();}
+
+	public static void insertText(WebElement ele, String value) {
+		ele.sendKeys(value);
+	}
+
+	public static void click(WebElement ele) {
+		ele.click();
+	}
+
+	public static void pauseStatically(long secs) throws InterruptedException {
+		Thread.sleep(secs);
+	}
+
+}
+//faeture file
+Feature: To test the functionality of sending an email using gmail
+
+Scenario : To validate login functionality with valid username and valid password
+Given User launches the browser and navigates to gmail login page
+When User enter username and password
+And User Clicks login button
+Then User checks whether the gmail dashboard is displayed or not
+  
+Scenario: To draft the mail and to send it via gmail
+Given  User clicks the compose button
+When User enters teh To recipient
+And User enters the Subject of the mail
+And User enters the body of the mail
+Then User clicks the send button
+
+Scenario: To check the send fubtionality of gmail
+Given User enters the send button
+When User moves over to sent tab
+And User Clicks on sent
+And user validates the to recipient 
+Then Click  the mail
+
+//testrunner
+package org.testrunner;
+
+import org.junit.runner.RunWith;
+
+import cucumber.api.junit.Cucumber;
+import cucumber.api.CucumberOptions;
+
+@RunWith(Cucumber.class)
+@CucumberOptions(features = {
+		"src\\test\\resources\\SendingEmailVerfication.feature" },
+glue= {"stepdef.com"},monochrome=true)
+public class TestRunner {
+
+}
+//stepdefinition
+package stepdef.com;
+
+import cucumber.api.PendingException;
+import cucumber.api.java.en.Given;
+import cucumber.api.java.en.When;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.And;
+import cucumber.api.junit.Cucumber;
+import pojo.com.LoginPage;
+
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Assert;
+import org.junit.runner.RunWith;
+import org.lib.LibGlobal;
+
+public class EmailSending extends LibGlobal {
+
+	LoginPage l = new LoginPage();
+
+	@Given("^User launches the browser and navigates to gmail login page$")
+	public void user_launches_the_browser_and_navigates_to_gmail_login_page() throws Throwable {
+		getChromeDriver();
+		launchUrl(
+				"https://accounts.google.com/ServiceLogin/identifier?service=mail&passive=true&rm=false&continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ss=1&scc=1&ltmpl=default&ltmplcache=2&emr=1&osid=1&flowName=GlifWebSignIn&flowEntry=ServiceLogin");
+	}
+
+	@When("^User enter username and password$")
+	public void user_enter_username_and_password() throws Throwable {
+		insertText(l.getTxtUserName(), "dharanisekar2106@gmail.com");
+		click(l.getBtnNext());
+		insertText(l.getTxtPassWord(), "Dhar$hini07");
+
+	}
+
+	@And("^User Clicks login button$")
+	public void user_clicks_login_button() throws Throwable {
+		click(l.getBtnNext());
+	}
+
+	@Then("^User checks whether the gmail dashboard is displayed or not$")
+	public void user_checks_whether_the_gmail_dashboard_is_displayed_or_not() throws Throwable {
+		String currentUrl = getCurrentUrl();
+		Assert.assertTrue("user not navigated to gmail dashboard", currentUrl.contains("inbox"));
+		System.out.println(currentUrl);
+	}
+
+	@Given("User clicks the compose button")
+	public void user_clicks_the_compose_button() {
+	   click(l.getBtnCompose());
+	}
+
+
+
+
+	@When("^User enters teh To recipient$")
+	public void user_enters_teh_to_recipient() throws Throwable {
+		insertText(l.getTxtTo(), "dharanisekar2106@gmail.com");
+	}
+
+	@And("^User enters the Subject of the mail$")
+	public void user_enters_the_subject_of_the_mail() throws Throwable {
+		insertText(l.getTxtSubject(),"HelloWorld");
+	}
+
+	@And("^User enters the body of the mail$")
+	public void user_enters_the_body_of_the_mail() throws Throwable {
+		insertText(l.getTxtBody(),"Greetings");
+	}
+
+	@Then("^User clicks the send button$")
+	public void user_clicks_the_send_button() throws Throwable {
+		click(l.getBtnSend());
+	}
+
+}
+//loginpage.pom
+package pojo.com;
+
+import org.lib.LibGlobal;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
+
+public class LoginPage extends LibGlobal{
+public LoginPage(){
+	PageFactory.initElements(driver, this);
+}
+@FindBy(id="identifierId")
+private WebElement txtUserName;
+@FindBy(xpath="//span[text()='Next']")
+private WebElement btnNext;
+@FindBy(xpath="//input[@type='password']")
+private WebElement txtPassWord;
+@FindBy(xpath="//div[text()='Compose']")
+private WebElement btnCompose;
+@FindBy(id=":qn")
+private WebElement txtTo;
+@FindBy(id=":q5")
+private WebElement txtSubject;
+@FindBy(id=":ra")
+private WebElement txtBody;
+@FindBy(id=":pv")
+private WebElement btnSend;
+
+
+public WebElement getBtnCompose() {
+	return btnCompose;
+}
+public WebElement getTxtTo() {
+	return txtTo;
+}
+public WebElement getTxtSubject() {
+	return txtSubject;
+}
+public WebElement getTxtBody() {
+	return txtBody;
+}
+public WebElement getBtnSend() {
+	return btnSend;
+}
+public WebElement getTxtUserName() {
+	return txtUserName;
+}
+public WebElement getBtnNext() {
+	return btnNext;
+}
+public WebElement getTxtPassWord() {
+	return txtPassWord;
+}
+
+}
